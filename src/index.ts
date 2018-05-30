@@ -4,14 +4,15 @@
 /// <reference path="./bindings/phaser.d.ts"/>
 
 import 'phaser';
-import {MainScene} from "./scenes/mainScene";
+import {MainScene} from "./scenes/mainScene"
 
 const config : GameConfig = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
   width: 800,
   height: 600,
-  scene: MainScene
+  scene: MainScene,
+  backgroundColor:'#4BC54C'
 };
 
 export class Game extends Phaser.Game {

@@ -1,3 +1,4 @@
+import {CARD_ATLAS_KEY, CardFactory} from "../Factories/cardFactory";
 /**
  * Created by sean on 5/29/2018.
  */
@@ -11,18 +12,20 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image("logo", "./assets/logo.png");
+    let cardFactory : CardFactory = new CardFactory(this, './assets/playingCards.png', './assets/playingCards.xml')
   }
 
   create(): void {
-    this.phaserImage = this.add.image(400, 150, "logo");
-    this.tweens.add({
-      targets: this.phaserImage,
-      y: 450,
-      duration: 2000,
-      ease: 'Power2',
-      yoyo: true,
-      loop: -1
-    });
+    var atlasTexture = this.textures.get(CARD_ATLAS_KEY)
+
+    var frames = atlasTexture.getFrameNames();
+
+    for (var i = 0; i < frames.length; i++)
+    {
+      var x = Phaser.Math.Between(0, 800);
+      var y = Phaser.Math.Between(0, 600);
+
+      this.add.image(x, y, CARD_ATLAS_KEY, frames[i]);
+    }
   }
 }
