@@ -19,13 +19,13 @@ export class MainScene extends Phaser.Scene {
     var atlasTexture = this.textures.get(CARD_ATLAS_KEY)
 
     var frames = atlasTexture.getFrameNames();
+    var image = atlasTexture.getSourceImage("cardClubs10.png");
 
     for (var i = 0; i < frames.length; i++)
     {
       var x = Phaser.Math.Between(0, 800);
       var y = Phaser.Math.Between(0, 600);
-
-      this.add.image(x, y, CARD_ATLAS_KEY, frames[i]);
+      this.add.image(x, y, CARD_ATLAS_KEY, "cardClubs10.png");
     }
   }
 }
