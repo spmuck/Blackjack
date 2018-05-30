@@ -1,3 +1,6 @@
+/**
+ * Created by sean on 5/29/2018.
+ */
 /// <reference path="./bindings/phaser.d.ts"/>
 
 import 'phaser';
