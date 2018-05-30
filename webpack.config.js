@@ -15,10 +15,7 @@ module.exports = {
 
     module: {
         rules: [
-          {
-            test: [ /\.vert$/, /\.frag$/ ],
-            use: 'raw-loader'
-          },
+            {test: [ /\.vert$/, /\.frag$/ ],use: 'raw-loader'},
             {test: /\.ts$/, loader: 'ts-loader', exclude: '/node_modules/' }
         ]
     },
