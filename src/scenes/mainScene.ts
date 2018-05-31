@@ -1,5 +1,6 @@
 import {CARD_ATLAS_KEY, CARD_HEIGHT, CARD_WIDTH, CardFactory} from "../Factories/cardFactory";
 import {Deck} from "../models/deck";
+import Text = Phaser.GameObjects.Text;
 /**
  * Created by sean on 5/29/2018.
  */
@@ -30,11 +31,35 @@ export class MainScene extends Phaser.Scene {
         }
         let frame = deck.drawCard().getAtlasFrame();
         let cardImage = this.add.image(x, y, CARD_ATLAS_KEY, frame).setScale(0.5);
+        cardImage.setInteractive();
+        cardImage.on('pointerover', function () {
+
+          this.setTint(Math.random() * 16000000);
+        });
         console.log(frame);
         x+= cardImage.displayWidth;
       }
     }
-    this.add.text(100, 400, 'BlackJack').setFontFamily('Arial').setFontSize(64).setColor('black');
+    let textStyle = {
+      font: "normal 48px Arial",
+      fill: '#000000',
+      align: 'center',
+      boundsAlignH: "center", // bounds center align horizontally
+      boundsAlignV: "middle" // bounds center align vertically
+    };
+    let text: Text = this.add.text(0, 0, 'BlackJack', textStyle);
+    text.setX(400 - (text.displayWidth * 0.5))
+    text.setInteractive();
+    text.on('pointerover', function () {
+
+      text.setColor('red')
+    });
+    text.on('pointerout', function () {
+
+      text.setColor('black')
+    });
   }
+
+
 
 }
