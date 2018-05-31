@@ -1,11 +1,28 @@
 /**
  * Created by sean on 5/29/2018.
  */
-export class card{
+export class Card{
   private suit: string;
   private value: string;
 
   constructor(suit: string,value: string){
+    this.suit = suit;
+    this.value = value;
+  }
 
+  public getSuit(): string{
+    return this.suit;
+  }
+
+  public getValue(): string{
+    return this.value;
+  }
+
+  /*
+   *function to get image of card from card atlas
+   * In the form of cardSpadesA.png
+   */
+  public getAtlasFrame(): string{
+    return 'card' + this.suit + this.value + '.png';
   }
 }
