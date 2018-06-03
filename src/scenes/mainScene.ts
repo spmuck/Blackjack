@@ -5,7 +5,6 @@ import {Hand} from "../models/hand";
 import Texture = Phaser.Textures.Texture;
 import {Card} from "../models/card";
 import Scene = Phaser.Scene;
-import scene = Phaser.Cameras.Sprite3D.scene;
 /**
  * Created by sean on 5/29/2018.
  */
@@ -19,6 +18,8 @@ export class MainScene extends Phaser.Scene {
   private deck: Deck;
   private atlasTexture: Texture;
   private CARD_MARGIN = 10;
+  private dealerScoreText: Text;
+  private playerScoreText: Text;
 
   constructor() {
     super({
@@ -36,6 +37,8 @@ export class MainScene extends Phaser.Scene {
     this.setUpTitle();
     this.setUpHitButton();
     this.setUpStayButton();
+    this.setUpDealerScoreText();
+    this.setUpPlayerScoreText();
 
     var x = 0 + CARD_WIDTH/4;
     var y = 0 + CARD_HEIGHT/4;
@@ -69,6 +72,18 @@ export class MainScene extends Phaser.Scene {
   private setUpTitle(): void {
     let textTitle: Text = this.add.text(0, 0, 'BlackJack', this.textStyle);
     textTitle.setX(400 - (textTitle.displayWidth * 0.5))
+  }
+
+  private setUpDealerScoreText(): void {
+    this.dealerScoreText = this.add.text(0, 200, '', this.textStyle);
+    this.setDealerScoreText();
+    this.dealerScoreText.setX(400 - (this.dealerScoreText.displayWidth * 0.5));
+  }
+
+  private setUpPlayerScoreText(): void {
+    this.playerScoreText = this.add.text(0, 300, '', this.textStyle);
+    this.setPlayerScoreText()
+    this.playerScoreText.setX(400 - (this.playerScoreText.displayWidth * 0.5));
   }
 
   private setUpHitButton(): void{
@@ -118,6 +133,7 @@ export class MainScene extends Phaser.Scene {
   private handleHit(mainScene: MainScene): void{
     mainScene.playerHand.receiveCard(mainScene.deck.drawCard());
     mainScene.drawHand(mainScene.playerHand, 400, 400);
+    mainScene.setPlayerScoreText();
   }
 
   private handleStay(mainScene: MainScene): void {
@@ -132,5 +148,13 @@ export class MainScene extends Phaser.Scene {
       let cardImage = scene.add.image(x, y, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(0.5);
       x += cardImage.displayWidth + cardMargin;
     });
+  }
+
+  private setDealerScoreText() {
+    this.dealerScoreText.setText("Dealer: " + this.dealerHand.getBlackjackScore());
+  }
+
+  private setPlayerScoreText() {
+    this.playerScoreText.setText("Player: " + this.playerHand.getBlackjackScore());
   }
 }

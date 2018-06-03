@@ -17,7 +17,22 @@ export class Hand{
     this.cards = [];
   }
 
-  public getBlackjackScore(){
+  public getBlackjackScore(): number{
+    let score: number = 0;
+    let aces: number = 0;
+    let faceCards: string[] = ['J', 'Q', 'K'];
+    let ace: string = 'A';
+    this.cards.forEach(function(card: Card) {
+      let value: string = card.getValue();
+      if(faceCards.includes(value)) score += 10;
+      else if(ace === value) aces++;
+      else score += Number(value);
+    });
+    for(let i = 0; i < aces ; i++){
+      if(score + 11 > 21) score += 1;
+      else score += 11;
+    }
+    return score;
   }
 
   public getCards(): Card[]{
