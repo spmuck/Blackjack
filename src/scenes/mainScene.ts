@@ -43,9 +43,6 @@ export class MainScene extends Phaser.Scene {
     let textStyle = {
       font: "normal 48px Arial",
       fill: '#000000',
-      align: 'center',
-      boundsAlignH: "center", // bounds center align horizontally
-      boundsAlignV: "middle" // bounds center align vertically
     };
     let text: Text = this.add.text(0, 0, 'BlackJack', textStyle);
     text.setX(400 - (text.displayWidth * 0.5))
