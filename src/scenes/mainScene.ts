@@ -24,7 +24,10 @@ export class MainScene extends Phaser.Scene {
   private textHit: Text;
   private textStay: Text;
   private resultText: Text;
+  private moneyText: Text;
   private cardImages: Image[];
+  private money: number = 1000;
+  private bet: number = 0;
 
   constructor() {
     super({
@@ -39,13 +42,24 @@ export class MainScene extends Phaser.Scene {
 
   create(): void {
     this.setUpTitle();
-    this.setUpNewGame();
+    this.setUpMoneyText();
+    this.promptBet();
   }
 
 
   private setUpTitle(): void {
     let textTitle: Text = this.add.text(0, 0, 'BlackJack', this.textStyle);
     textTitle.setX(400 - (textTitle.displayWidth * 0.5))
+  }
+
+  private setUpMoneyText(): void{
+    this.moneyText = this.add.text(600, 0, '', this.textStyle);
+    this.moneyText.setFontSize(24);
+    this.updateMoneyText();
+  }
+
+  private updateMoneyText(): void{
+    this.moneyText.setText('Money: $' + this.money);
   }
 
   private setUpDealerScoreText(): void {
@@ -88,6 +102,66 @@ export class MainScene extends Phaser.Scene {
     });
   }
 
+  private promptBet() {
+    let mainScene: MainScene = this;
+    if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
+    let betPrompt = this.add.text(0, 400, '', this.textStyle);
+    this.updateBetText(betPrompt);
+    let add1 = this.add.text(0,500, '$1', this.textStyle);
+    add1.setInteractive();
+    let add25 = this.add.text(100, 500, '$25', this.textStyle);
+    add25.setInteractive();
+    let add100 = this.add.text(240, 500, '$100', this.textStyle);
+    add100.setInteractive()
+    let clearBet = this.add.text(500, 500, 'Clear', this.textStyle);
+    clearBet.setInteractive();
+    let deal = this.add.text(700,500, 'Deal', this.textStyle);
+    deal.setInteractive();
+    this.setUpHoverStyles(add1);
+    this.setUpHoverStyles(add25);
+    this.setUpHoverStyles(add100);
+    this.setUpHoverStyles(clearBet);
+    this.setUpHoverStyles(deal);
+    add1.on('pointerdown', function () {
+      mainScene.bet++;
+      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
+      mainScene.updateBetText(betPrompt);
+    });
+    add25.on('pointerdown', function () {
+      mainScene.bet += 25;
+      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
+      mainScene.updateBetText(betPrompt);
+    });
+    add100.on('pointerdown', function () {
+      mainScene.bet += 100;
+      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
+      mainScene.updateBetText(betPrompt);
+    });
+    clearBet.on('pointerdown', function () {
+      mainScene.bet = 0;
+      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
+      mainScene.updateBetText(betPrompt);
+    });
+    deal.on('pointerdown', function () {
+      mainScene.money -= mainScene.bet;
+      if(mainScene.dealerScoreText)mainScene.dealerScoreText.destroy();
+      if(mainScene.playerScoreText) mainScene.playerScoreText.destroy();
+      if(mainScene.resultText) mainScene.resultText.destroy();
+      mainScene.updateMoneyText();
+      betPrompt.destroy();
+      add1.destroy();
+      add25.destroy();
+      add100.destroy();
+      clearBet.destroy();
+      deal.destroy();
+      mainScene.setUpNewGame()
+    });
+  }
+
+  private updateBetText(text: Text){
+    text.setText('Your bet: $' + this.bet);
+  }
+
   private setUpNewGame(){
     this.deck = new Deck();
     this.dealerHand =  new Hand();
@@ -118,7 +192,7 @@ export class MainScene extends Phaser.Scene {
       mainScene.resultText = mainScene.add.text(0,0, 'BUST!', mainScene.textStyle);
       mainScene.textHit.destroy();
       mainScene.textStay.destroy();
-      mainScene.setUpNewGameText();
+      mainScene.endHand();
     }
   }
 
@@ -135,6 +209,7 @@ export class MainScene extends Phaser.Scene {
     }
     if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
       mainScene.resultText = mainScene.add.text(0,0, 'WIN!', mainScene.textStyle);
+      mainScene.money += mainScene.bet * 2;
     }
     else if(dealerScore === playerScore){
       mainScene.resultText = mainScene.add.text(0,0, 'Push', mainScene.textStyle);
@@ -142,7 +217,7 @@ export class MainScene extends Phaser.Scene {
     else {
       mainScene.resultText = mainScene.add.text(0,0, 'Loss', mainScene.textStyle);
     }
-    mainScene.setUpNewGameText();
+    mainScene.endHand();
   }
 
   private refreshDrawHands() {
@@ -177,18 +252,9 @@ export class MainScene extends Phaser.Scene {
     this.playerScoreText.setText("Player: " + this.playerHand.getBlackjackScore());
   }
 
-  private setUpNewGameText() {
-    let newGameText: Text = this.add.text(0, 500, 'New Game', this.textStyle);
-    newGameText.setX(400 - (newGameText.displayWidth * 0.5));
-    newGameText.setInteractive();
-    this.setUpHoverStyles(newGameText);
+  private endHand() {
     let mainScene: MainScene = this;
-    newGameText.on('pointerdown', function () {
-      newGameText.destroy();
-      mainScene.dealerScoreText.destroy();
-      mainScene.playerScoreText.destroy();
-      mainScene.resultText.destroy();
-      mainScene.setUpNewGame();
-    });
+    mainScene.updateMoneyText();
+    mainScene.promptBet();
   }
 }
