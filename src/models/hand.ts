@@ -17,6 +17,10 @@ export class Hand{
     this.cards = [];
   }
 
+  /*
+  Scoring algorithm: number cards are scored as their value, face cards as 10, Ace as 11 or 1.
+  For simplicity, Ace will count as 11 unless that will put the value over 21, where it will switch to 1
+   */
   public getBlackjackScore(): number{
     let score: number = 0;
     let aces: number = 0;

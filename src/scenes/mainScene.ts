@@ -134,10 +134,30 @@ export class MainScene extends Phaser.Scene {
     mainScene.playerHand.receiveCard(mainScene.deck.drawCard());
     mainScene.drawHand(mainScene.playerHand, 400, 400);
     mainScene.setPlayerScoreText();
+    if(mainScene.playerHand.getBlackjackScore() > 21) {
+      mainScene.add.text(0,0, 'BUST!', mainScene.textStyle);
+    }
   }
 
   private handleStay(mainScene: MainScene): void {
-    alert('STAYING IM FUCKIN STAYING I THINK...YEAH STAY. DUMB FUCKERS');
+    let dealerScore: number = mainScene.dealerHand.getBlackjackScore();
+    let playerScore: number = mainScene.playerHand.getBlackjackScore();
+    while( dealerScore < 17){
+      mainScene.dealerHand.receiveCard(mainScene.deck.drawCard());
+      mainScene.drawHand(mainScene.dealerHand, 400, 100);
+      mainScene.setDealerScoreText();
+      dealerScore = mainScene.dealerHand.getBlackjackScore();
+    }
+    if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
+      mainScene.add.text(0,0, 'WIN!', mainScene.textStyle);
+    }
+    else if(dealerScore === playerScore){
+      mainScene.add.text(0,0, 'Push', mainScene.textStyle);
+    }
+    else {
+      mainScene.add.text(0,0, 'YOU LOSE FOOL', mainScene.textStyle);
+    }
+
   }
 
   private drawHand(hand: Hand, x: number, y: number, ) {
