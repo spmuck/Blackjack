@@ -5,6 +5,10 @@ import {Card} from "./card";
 export class Hand{
   private cards: Card[];
 
+  constructor(){
+    this.emptyHand();
+  }
+
   public receiveCard(card: Card){
     this.cards.push(card);
   }
@@ -14,5 +18,9 @@ export class Hand{
   }
 
   public getBlackjackScore(){
+  }
+
+  public getCards(): Card[]{
+    return this.cards;
   }
 }
