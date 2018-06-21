@@ -5,13 +5,14 @@
 
 import 'phaser';
 import {MainScene} from "./scenes/mainScene"
+import {BetScene} from "./scenes/BetScene";
 
 const config : GameConfig = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
   width: 800,
   height: 600,
-  scene: MainScene,
+  scene: [BetScene, MainScene],
   backgroundColor:'#4BC54C'
 };
 

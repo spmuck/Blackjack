@@ -1,19 +1,16 @@
-import {CARD_ATLAS_KEY, CARD_HEIGHT, CARD_WIDTH, CardFactory} from "../Factories/cardFactory";
+import {CARD_ATLAS_KEY, CardFactory} from "../Factories/cardFactory";
 import {Deck} from "../models/deck";
-import Text = Phaser.GameObjects.Text;
 import {Hand} from "../models/hand";
-import Texture = Phaser.Textures.Texture;
 import {Card} from "../models/card";
-import Scene = Phaser.Scene;
+import Text = Phaser.GameObjects.Text;
+import Texture = Phaser.Textures.Texture;
 import Image = Phaser.GameObjects.Image;
+import {textStyle} from "../constants/constants";
+
 /**
  * Created by sean on 5/29/2018.
  */
 export class MainScene extends Phaser.Scene {
-  private textStyle = {
-    font: "normal 48px Arial",
-    fill: '#000000',
-  };
   private dealerHand: Hand;
   private playerHand: Hand;
   private deck: Deck;
@@ -38,6 +35,7 @@ export class MainScene extends Phaser.Scene {
   preload(): void {
     let cardFactory: CardFactory = new CardFactory(this, './assets/playingCards.png', './assets/playingCards.xml');
     this.atlasTexture = this.textures.get(CARD_ATLAS_KEY);
+    alert(this.scene.get('BetScene').data.get('money'));
   }
 
   create(): void {
@@ -48,12 +46,12 @@ export class MainScene extends Phaser.Scene {
 
 
   private setUpTitle(): void {
-    let textTitle: Text = this.add.text(0, 0, 'BlackJack', this.textStyle);
+    let textTitle: Text = this.add.text(0, 0, 'BlackJack', textStyle);
     textTitle.setX(400 - (textTitle.displayWidth * 0.5))
   }
 
   private setUpMoneyText(): void{
-    this.moneyText = this.add.text(600, 0, '', this.textStyle);
+    this.moneyText = this.add.text(600, 0, '', textStyle);
     this.moneyText.setFontSize(24);
     this.updateMoneyText();
   }
@@ -63,19 +61,19 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setUpDealerScoreText(): void {
-    this.dealerScoreText = this.add.text(0, 200, '', this.textStyle);
+    this.dealerScoreText = this.add.text(0, 200, '', textStyle);
     this.setDealerScoreText();
     this.dealerScoreText.setX(400 - (this.dealerScoreText.displayWidth * 0.5));
   }
 
   private setUpPlayerScoreText(): void {
-    this.playerScoreText = this.add.text(0, 300, '', this.textStyle);
+    this.playerScoreText = this.add.text(0, 300, '', textStyle);
     this.setPlayerScoreText();
     this.playerScoreText.setX(400 - (this.playerScoreText.displayWidth * 0.5));
   }
 
   private setUpHitButton(): void{
-    this.textHit = this.add.text(0, 500, 'Hit', this.textStyle);
+    this.textHit = this.add.text(0, 500, 'Hit', textStyle);
     this.textHit.setX(200 - (this.textHit.displayWidth * 0.5));
     this.textHit.setInteractive();
     this.setUpHoverStyles(this.textHit);
@@ -83,7 +81,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setUpStayButton(): void {
-    this.textStay = this.add.text(0, 500, 'Stay', this.textStyle);
+    this.textStay = this.add.text(0, 500, 'Stay', textStyle);
     this.textStay.setX(600 - (this.textStay.displayWidth * 0.5));
 
     this.textStay.setInteractive();
@@ -105,17 +103,17 @@ export class MainScene extends Phaser.Scene {
   private promptBet() {
     let mainScene: MainScene = this;
     if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-    let betPrompt = this.add.text(0, 400, '', this.textStyle);
+    let betPrompt = this.add.text(0, 400, '', textStyle);
     this.updateBetText(betPrompt);
-    let add1 = this.add.text(0,500, '$1', this.textStyle);
+    let add1 = this.add.text(0,500, '$1', textStyle);
     add1.setInteractive();
-    let add25 = this.add.text(100, 500, '$25', this.textStyle);
+    let add25 = this.add.text(100, 500, '$25', textStyle);
     add25.setInteractive();
-    let add100 = this.add.text(240, 500, '$100', this.textStyle);
+    let add100 = this.add.text(240, 500, '$100', textStyle);
     add100.setInteractive()
-    let clearBet = this.add.text(500, 500, 'Clear', this.textStyle);
+    let clearBet = this.add.text(500, 500, 'Clear', textStyle);
     clearBet.setInteractive();
-    let deal = this.add.text(700,500, 'Deal', this.textStyle);
+    let deal = this.add.text(700,500, 'Deal', textStyle);
     deal.setInteractive();
     this.setUpHoverStyles(add1);
     this.setUpHoverStyles(add25);
@@ -189,7 +187,7 @@ export class MainScene extends Phaser.Scene {
     mainScene.refreshDrawHands();
     mainScene.setPlayerScoreText();
     if(mainScene.playerHand.getBlackjackScore() > 21) {
-      mainScene.resultText = mainScene.add.text(0,0, 'BUST!', mainScene.textStyle);
+      mainScene.resultText = mainScene.add.text(0,0, 'BUST!', textStyle);
       mainScene.textHit.destroy();
       mainScene.textStay.destroy();
       mainScene.endHand();
@@ -208,14 +206,14 @@ export class MainScene extends Phaser.Scene {
       dealerScore = mainScene.dealerHand.getBlackjackScore();
     }
     if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
-      mainScene.resultText = mainScene.add.text(0,0, 'WIN!', mainScene.textStyle);
+      mainScene.resultText = mainScene.add.text(0,0, 'WIN!', textStyle);
       mainScene.money += mainScene.bet * 2;
     }
     else if(dealerScore === playerScore){
-      mainScene.resultText = mainScene.add.text(0,0, 'Push', mainScene.textStyle);
+      mainScene.resultText = mainScene.add.text(0,0, 'Push', textStyle);
     }
     else {
-      mainScene.resultText = mainScene.add.text(0,0, 'Loss', mainScene.textStyle);
+      mainScene.resultText = mainScene.add.text(0,0, 'Loss', textStyle);
     }
     mainScene.endHand();
   }
