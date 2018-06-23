@@ -19,7 +19,9 @@ export class BetScene extends Phaser.Scene {
     preload(): void {
         this.load.image('redChip', './assets/chipRed.png');
         this.load.image('whiteChip', './assets/chipWhite.png');
-        this.load.image('blueChip', './assets/chipBlue.png')
+        this.load.image('blueChip', './assets/chipBlue.png');
+        this.load.image('orangeChip', './assets/chipOrange.png');
+        this.load.image('yellowChip', './assets/chipYellow.png')
     }
 
     create(): void {
@@ -82,19 +84,37 @@ export class BetScene extends Phaser.Scene {
         blueChip.data.set('value',100);
         this.setUpHoverButtons(blueChip);
         let add100 = this.add.text(550,375, '$100', textStyle);
-        // redChip.on('pointerdown', function(){
-        //     this.scene.start('MainScene');
-        // }, this);
         this.data.set('money', 1000);
-        let images: Image[] = new Array<Image>();
-        images.push(whiteChip);
-        images.push(redChip);
-        images.push(blueChip);
-        ImageUtility.spaceOutImagesEvenlyHorizontally(images, this.scene);
+        let chips: Image[] = new Array<Image>();
+        chips.push(whiteChip);
+        chips.push(redChip);
+        chips.push(blueChip);
+        let clearButton = this.add.image(0,500,'yellowChip');
+        let clearText = this.add.text(0,575,'Clear',textStyle);
+        let dealButton = this.add.image(0,500,'orangeChip');
+        let dealText = this.add.text(0,575, 'Deal', textStyle);
+        clearButton.setInteractive();
+        dealButton.setInteractive();
+        this.setUpHoverButtons(clearButton);
+        this.setUpHoverButtons(dealButton);
+        clearButton.on('pointerdown',function(){
+            this.bet = 0;
+            this.updateBetText();
+        },this);
+        dealButton.on('pointerdown', function(){
+            this.scene.start('MainScene');
+        }, this);
+        let buttons: Image[] = new Array<Image>();
+        buttons.push(clearButton);
+        buttons.push(dealButton);
+        ImageUtility.spaceOutImagesEvenlyHorizontally(buttons, this.scene)
+        ImageUtility.spaceOutImagesEvenlyHorizontally(chips, this.scene);
         TextUtility.centerTextOnImageHorizontally(add1, whiteChip);
         TextUtility.centerTextOnImageHorizontally(add25, redChip);
         TextUtility.centerTextOnImageHorizontally(add100, blueChip);
-        this.setUpBetButtonHandlers(images);
+        TextUtility.centerTextOnImageHorizontally(clearText, clearButton);
+        TextUtility.centerTextOnImageHorizontally(dealText,dealButton);
+        this.setUpBetButtonHandlers(chips);
     }
 
     private setUpBetButtonHandlers(buttons: Image[]){
