@@ -80,17 +80,14 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setUpHitButton(): void{
-    this.textHit = this.add.text(0, 500, 'Hit', textStyle);
-    this.textHit.setX(200 - (this.textHit.displayWidth * 0.5));
+    this.textHit = this.add.text(this.gameZone.width*0.33, this.gameZone.height * 0.5, 'Hit', textStyle);
     this.textHit.setInteractive();
     this.setUpHoverStyles(this.textHit);
     this.setUpClickHandler(this.textHit, this.handleHit);
   }
 
   private setUpStayButton(): void {
-    this.textStay = this.add.text(0, 500, 'Stay', textStyle);
-    this.textStay.setX(600 - (this.textStay.displayWidth * 0.5));
-
+    this.textStay = this.add.text(this.gameZone.width*0.66, this.gameZone.height * 0.5, 'Stay', textStyle);
     this.textStay.setInteractive();
     this.setUpHoverStyles(this.textStay);
     this.setUpClickHandler(this.textStay, this.handleStay);
