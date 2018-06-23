@@ -71,9 +71,10 @@ export class BetScene extends Phaser.Scene {
         whiteChip.setDataEnabled();
         whiteChip.data.set('value', 1);
         this.setUpHoverButtons(whiteChip);
-        let add1 = this.add.text(175,375, '$1', textStyle);
+        let add1 = this.add.text(175,375, '1', textStyle);
+
         let redChip = this.add.image(400,300, 'redChip');
-        let add25 = this.add.text(360,375, '$25', textStyle);
+        let add25 = this.add.text(360,375, '25', textStyle);
         redChip.setInteractive();
         redChip.setDataEnabled();
         redChip.data.set('value',25);
@@ -83,7 +84,7 @@ export class BetScene extends Phaser.Scene {
         blueChip.setDataEnabled();
         blueChip.data.set('value',100);
         this.setUpHoverButtons(blueChip);
-        let add100 = this.add.text(550,375, '$100', textStyle);
+        let add100 = this.add.text(550,375, '100', textStyle);
         this.data.set('money', 1000);
         let chips: Image[] = new Array<Image>();
         chips.push(whiteChip);
@@ -110,11 +111,11 @@ export class BetScene extends Phaser.Scene {
         buttons.push(dealButton);
         ImageUtility.spaceOutImagesEvenlyHorizontally(buttons, this.scene)
         ImageUtility.spaceOutImagesEvenlyHorizontally(chips, this.scene);
-        TextUtility.centerTextOnImageHorizontally(add1, whiteChip);
-        TextUtility.centerTextOnImageHorizontally(add25, redChip);
-        TextUtility.centerTextOnImageHorizontally(add100, blueChip);
-        TextUtility.centerTextOnImageHorizontally(clearText, clearButton);
-        TextUtility.centerTextOnImageHorizontally(dealText,dealButton);
+        Phaser.Display.Align.In.Center(add1,whiteChip);
+        Phaser.Display.Align.In.Center(add25, redChip);
+        Phaser.Display.Align.In.Center(add100, blueChip);
+        Phaser.Display.Align.In.Center(clearText, clearButton);
+        Phaser.Display.Align.In.Center(dealText, dealButton);
         this.setUpBetButtonHandlers(chips);
     }
 

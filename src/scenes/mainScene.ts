@@ -7,6 +7,8 @@ import Texture = Phaser.Textures.Texture;
 import Image = Phaser.GameObjects.Image;
 import {textStyle} from "../constants/constants";
 import {BetScene} from "./BetScene";
+import Zone = Phaser.GameObjects.Zone;
+import {GameResult} from "../models/gameResult";
 
 /**
  * Created by sean on 5/29/2018.
@@ -21,12 +23,10 @@ export class MainScene extends Phaser.Scene {
   private playerScoreText: Text;
   private textHit: Text;
   private textStay: Text;
-  private resultText: Text;
   private moneyText: Text;
   private cardImages: Image[];
-  private money: number;
-  private bet: number;
   private betScene: BetScene;
+  private gameZone: Zone;
 
   constructor() {
     super({
@@ -38,13 +38,14 @@ export class MainScene extends Phaser.Scene {
     let cardFactory: CardFactory = new CardFactory(this, './assets/playingCards.png', './assets/playingCards.xml');
     this.atlasTexture = this.textures.get(CARD_ATLAS_KEY);
     this.betScene = <BetScene>this.scene.get('BetScene');
-    this.money = this.betScene.money;
-    this.bet = this.betScene.bet;
   }
 
   create(): void {
     this.setUpMoneyText();
     this.setUpNewGame();
+    let width: number = new Number(this.scene.manager.game.config.width).valueOf();
+    let height: number = new Number(this.scene.manager.game.config.height).valueOf();
+    this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
   }
 
   private setUpMoneyText(): void{
@@ -57,11 +58,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   private updateMoneyText(): void{
-    this.moneyText.setText('Money: $' + this.money);
+    this.moneyText.setText('Money: $' + this.betScene.money);
   }
 
   private updateBetText(text: Text){
-      text.setText('Your bet: $' + this.bet);
+      text.setText('Your bet: $' + this.betScene.bet);
   }
 
   private setUpDealerScoreText(): void {
@@ -131,10 +132,9 @@ export class MainScene extends Phaser.Scene {
     mainScene.refreshDrawHands();
     mainScene.setPlayerScoreText();
     if(mainScene.playerHand.getBlackjackScore() > 21) {
-      mainScene.resultText = mainScene.add.text(0,0, 'BUST!', textStyle);
       mainScene.textHit.destroy();
       mainScene.textStay.destroy();
-      mainScene.endHand(false);
+      mainScene.endHand(GameResult.LOSS);
     }
   }
 
@@ -150,17 +150,13 @@ export class MainScene extends Phaser.Scene {
       dealerScore = mainScene.dealerHand.getBlackjackScore();
     }
     if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
-      mainScene.resultText = mainScene.add.text(0,0, 'WIN!', textStyle);
-      mainScene.money += mainScene.bet * 2;
-      mainScene.endHand(true);
+      mainScene.endHand(GameResult.WIN);
     }
     else if(dealerScore === playerScore){
-      mainScene.resultText = mainScene.add.text(0,0, 'Push', textStyle);
-      mainScene.endHand(false);
+      mainScene.endHand(GameResult.PUSH);
     }
     else {
-      mainScene.resultText = mainScene.add.text(0,0, 'Loss', textStyle);
-      mainScene.endHand(false);
+      mainScene.endHand(GameResult.PUSH);
     }
 
   }
@@ -197,12 +193,27 @@ export class MainScene extends Phaser.Scene {
     this.playerScoreText.setText("Player: " + this.playerHand.getBlackjackScore());
   }
 
-  private endHand(playerWon: boolean) {
-    let mainScene: MainScene = this;
-    mainScene.updateMoneyText();
-    if(playerWon){
+  private endHand(result: GameResult) {
+    let graphics = this.add.graphics({fillStyle: {color: 0x000000, alpha: 0.75}});
+    let square = new Phaser.Geom.Rectangle(0, 0, new Number(this.scene.manager.game.config.width).valueOf(),
+      new Number(this.scene.manager.game.config.height).valueOf());
+    graphics.fillRectShape(square);
+    let resultText: Text = this.add.text(0, 0, <string> result, textStyle);
+    resultText.setColor("#ffde3d");
+    //resultText.setStroke("#000000", 5);
+    //resultText.setFontSize(60);
+    Phaser.Display.Align.In.Center(resultText, this.gameZone);
+    this.input.once('pointerdown', function (event){
+      this.input.once('pointerup', function (event){
+        this.scene.start('BetScene');
+      },this);
+    },this);
+    if(result === GameResult.WIN){
       this.betScene.money += this.betScene.bet * 2;
     }
-    this.scene.start('BetScene');
+    else if(result === GameResult.PUSH){
+      this.betScene.money += this.betScene.bet;
+    }
+    this.updateMoneyText();
   }
 }
