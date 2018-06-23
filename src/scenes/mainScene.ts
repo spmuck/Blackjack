@@ -6,6 +6,7 @@ import Text = Phaser.GameObjects.Text;
 import Texture = Phaser.Textures.Texture;
 import Image = Phaser.GameObjects.Image;
 import {textStyle} from "../constants/constants";
+import {BetScene} from "./BetScene";
 
 /**
  * Created by sean on 5/29/2018.
@@ -23,8 +24,9 @@ export class MainScene extends Phaser.Scene {
   private resultText: Text;
   private moneyText: Text;
   private cardImages: Image[];
-  private money: number = 1000;
-  private bet: number = 0;
+  private money: number;
+  private bet: number;
+  private betScene: BetScene;
 
   constructor() {
     super({
@@ -35,29 +37,31 @@ export class MainScene extends Phaser.Scene {
   preload(): void {
     let cardFactory: CardFactory = new CardFactory(this, './assets/playingCards.png', './assets/playingCards.xml');
     this.atlasTexture = this.textures.get(CARD_ATLAS_KEY);
-    alert(this.scene.get('BetScene').data.get('money'));
+    this.betScene = <BetScene>this.scene.get('BetScene');
+    this.money = this.betScene.money;
+    this.bet = this.betScene.bet;
   }
 
   create(): void {
-    this.setUpTitle();
     this.setUpMoneyText();
-    this.promptBet();
-  }
-
-
-  private setUpTitle(): void {
-    let textTitle: Text = this.add.text(0, 0, 'BlackJack', textStyle);
-    textTitle.setX(400 - (textTitle.displayWidth * 0.5))
+    this.setUpNewGame();
   }
 
   private setUpMoneyText(): void{
     this.moneyText = this.add.text(600, 0, '', textStyle);
+    let betText: Text = this.add.text(600, 40, '', textStyle);
+    betText.setFontSize(24);
     this.moneyText.setFontSize(24);
+    this.updateBetText(betText);
     this.updateMoneyText();
   }
 
   private updateMoneyText(): void{
     this.moneyText.setText('Money: $' + this.money);
+  }
+
+  private updateBetText(text: Text){
+      text.setText('Your bet: $' + this.bet);
   }
 
   private setUpDealerScoreText(): void {
@@ -100,66 +104,6 @@ export class MainScene extends Phaser.Scene {
     });
   }
 
-  private promptBet() {
-    let mainScene: MainScene = this;
-    if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-    let betPrompt = this.add.text(0, 400, '', textStyle);
-    this.updateBetText(betPrompt);
-    let add1 = this.add.text(0,500, '$1', textStyle);
-    add1.setInteractive();
-    let add25 = this.add.text(100, 500, '$25', textStyle);
-    add25.setInteractive();
-    let add100 = this.add.text(240, 500, '$100', textStyle);
-    add100.setInteractive()
-    let clearBet = this.add.text(500, 500, 'Clear', textStyle);
-    clearBet.setInteractive();
-    let deal = this.add.text(700,500, 'Deal', textStyle);
-    deal.setInteractive();
-    this.setUpHoverStyles(add1);
-    this.setUpHoverStyles(add25);
-    this.setUpHoverStyles(add100);
-    this.setUpHoverStyles(clearBet);
-    this.setUpHoverStyles(deal);
-    add1.on('pointerdown', function () {
-      mainScene.bet++;
-      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-      mainScene.updateBetText(betPrompt);
-    });
-    add25.on('pointerdown', function () {
-      mainScene.bet += 25;
-      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-      mainScene.updateBetText(betPrompt);
-    });
-    add100.on('pointerdown', function () {
-      mainScene.bet += 100;
-      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-      mainScene.updateBetText(betPrompt);
-    });
-    clearBet.on('pointerdown', function () {
-      mainScene.bet = 0;
-      if(mainScene.bet > mainScene.money) mainScene.bet = mainScene.money;
-      mainScene.updateBetText(betPrompt);
-    });
-    deal.on('pointerdown', function () {
-      mainScene.money -= mainScene.bet;
-      if(mainScene.dealerScoreText)mainScene.dealerScoreText.destroy();
-      if(mainScene.playerScoreText) mainScene.playerScoreText.destroy();
-      if(mainScene.resultText) mainScene.resultText.destroy();
-      mainScene.updateMoneyText();
-      betPrompt.destroy();
-      add1.destroy();
-      add25.destroy();
-      add100.destroy();
-      clearBet.destroy();
-      deal.destroy();
-      mainScene.setUpNewGame()
-    });
-  }
-
-  private updateBetText(text: Text){
-    text.setText('Your bet: $' + this.bet);
-  }
-
   private setUpNewGame(){
     this.deck = new Deck();
     this.dealerHand =  new Hand();
@@ -190,7 +134,7 @@ export class MainScene extends Phaser.Scene {
       mainScene.resultText = mainScene.add.text(0,0, 'BUST!', textStyle);
       mainScene.textHit.destroy();
       mainScene.textStay.destroy();
-      mainScene.endHand();
+      mainScene.endHand(false);
     }
   }
 
@@ -208,14 +152,17 @@ export class MainScene extends Phaser.Scene {
     if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
       mainScene.resultText = mainScene.add.text(0,0, 'WIN!', textStyle);
       mainScene.money += mainScene.bet * 2;
+      mainScene.endHand(true);
     }
     else if(dealerScore === playerScore){
       mainScene.resultText = mainScene.add.text(0,0, 'Push', textStyle);
+      mainScene.endHand(false);
     }
     else {
       mainScene.resultText = mainScene.add.text(0,0, 'Loss', textStyle);
+      mainScene.endHand(false);
     }
-    mainScene.endHand();
+
   }
 
   private refreshDrawHands() {
@@ -250,9 +197,12 @@ export class MainScene extends Phaser.Scene {
     this.playerScoreText.setText("Player: " + this.playerHand.getBlackjackScore());
   }
 
-  private endHand() {
+  private endHand(playerWon: boolean) {
     let mainScene: MainScene = this;
     mainScene.updateMoneyText();
-    mainScene.promptBet();
+    if(playerWon){
+      this.betScene.money += this.betScene.bet * 2;
+    }
+    this.scene.start('BetScene');
   }
 }
