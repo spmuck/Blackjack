@@ -1,5 +1,6 @@
 export enum GameResult {
   WIN = "WIN",
   LOSS = "LOSS",
-  PUSH = "PUSH"
+  PUSH = "PUSH",
+  BLACKJACK = "BLACKJACK"
 }

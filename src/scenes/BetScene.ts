@@ -3,12 +3,14 @@ import Image = Phaser.GameObjects.Image;
 import Text = Phaser.GameObjects.Text;
 import {TextUtility} from "../utility/TextUtility";
 import {ImageUtility} from "../utility/ImageUtility";
+import Zone = Phaser.GameObjects.Zone;
 
 export class BetScene extends Phaser.Scene {
     public money: number = 1000;
     public bet: number = 0;
     public moneyText: Text;
     public betText: Text;
+    private gameZone: Zone;
 
     constructor() {
         super({
@@ -25,10 +27,18 @@ export class BetScene extends Phaser.Scene {
     }
 
     create(): void {
+        if(this.bet > this.money) this.bet = this.money;
+        let width: number = new Number(this.scene.manager.game.config.width).valueOf();
+        let height: number = new Number(this.scene.manager.game.config.height).valueOf();
+        this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
         this.setUpTitle();
         this.setUpButtons();
         this.setUpMoneyText();
-        this.setUpBetText();
+    }
+
+    private setUpTitle(): void {
+      let textTitle: Text = this.add.text(0, 20, 'Place your bet', textStyle);
+      TextUtility.centerTextHorizontally(textTitle, this.scene);
     }
 
     setUpHoverButtons(image: Image): void {
@@ -41,28 +51,21 @@ export class BetScene extends Phaser.Scene {
     }
 
     private setUpMoneyText(): void{
-        this.moneyText = this.add.text(0, 80, '', textStyle);
-        this.updateMoneyText();
+      this.moneyText = this.add.text(0, 0, '', textStyle);
+      this.betText = this.add.text(0, 0, '', textStyle);
+
+      this.updateMoneyText();
+      this.updateBetText();
     }
 
     private updateMoneyText(): void{
-        this.moneyText.setText('Your total Money: $' + this.money);
-        TextUtility.centerTextHorizontally(this.moneyText, this.scene);
+      this.moneyText.setText('Money: $' + this.money);
+      Phaser.Display.Align.In.TopRight(this.moneyText, this.gameZone, -20, -20);
     }
 
-    private setUpTitle(): void {
-        let textTitle: Text = this.add.text(0, 20, 'Place your bet', textStyle);
-        TextUtility.centerTextHorizontally(textTitle, this.scene);
-    }
-
-    private setUpBetText() {
-        this.betText = this.add.text(0, 140, '', textStyle);
-        this.updateBetText();
-    }
-
-    private updateBetText(): void{
-        this.betText.setText('Your Bet: $' + this.bet);
-        TextUtility.centerTextHorizontally(this.betText, this.scene);
+    private updateBetText(){
+      this.betText.setText('Bet: $' + this.bet);
+      Phaser.Display.Align.To.BottomLeft(this.betText, this.moneyText);
     }
 
     private setUpButtons(): void{
@@ -109,7 +112,7 @@ export class BetScene extends Phaser.Scene {
         let buttons: Image[] = new Array<Image>();
         buttons.push(clearButton);
         buttons.push(dealButton);
-        ImageUtility.spaceOutImagesEvenlyHorizontally(buttons, this.scene)
+        ImageUtility.spaceOutImagesEvenlyHorizontally(buttons, this.scene);
         ImageUtility.spaceOutImagesEvenlyHorizontally(chips, this.scene);
         Phaser.Display.Align.In.Center(add1,whiteChip);
         Phaser.Display.Align.In.Center(add25, redChip);

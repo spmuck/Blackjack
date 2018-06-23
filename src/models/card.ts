@@ -4,6 +4,7 @@
 export class Card{
   private suit: string;
   private value: string;
+  private faceDown: boolean = false;
 
   constructor(suit: string,value: string){
     this.suit = suit;
@@ -15,7 +16,7 @@ export class Card{
   }
 
   public getValue(): string{
-    return this.value;
+    return !this.faceDown ? this.value : "0";
   }
 
   /*
@@ -23,6 +24,14 @@ export class Card{
    * In the form of cardSpadesA.png
    */
   public getAtlasFrame(): string{
-    return 'card' + this.suit + this.value + '.png';
+    return !this.faceDown ? 'card' + this.suit + this.value + '.png': "";
+  }
+
+  public setFaceDown(faceDown: boolean){
+    this.faceDown = faceDown;
+  }
+
+  public getFaceDown(): boolean {
+    return this.faceDown;
   }
 }

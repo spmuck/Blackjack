@@ -13,6 +13,11 @@ export class Hand{
     this.cards.push(card);
   }
 
+  public receiveCardFaceDown(card: Card){
+    card.setFaceDown(true);
+    this.cards.push(card);
+  }
+
   public emptyHand(){
     this.cards = [];
   }

@@ -36,33 +36,35 @@ export class MainScene extends Phaser.Scene {
 
   preload(): void {
     let cardFactory: CardFactory = new CardFactory(this, './assets/playingCards.png', './assets/playingCards.xml');
+    this.load.image('cardBack', './assets/card_back_red.png');
     this.atlasTexture = this.textures.get(CARD_ATLAS_KEY);
     this.betScene = <BetScene>this.scene.get('BetScene');
   }
 
   create(): void {
-    this.setUpMoneyText();
-    this.setUpNewGame();
     let width: number = new Number(this.scene.manager.game.config.width).valueOf();
     let height: number = new Number(this.scene.manager.game.config.height).valueOf();
     this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
+    this.setUpMoneyText();
+    this.setUpNewGame();
   }
 
   private setUpMoneyText(): void{
-    this.moneyText = this.add.text(600, 0, '', textStyle);
-    let betText: Text = this.add.text(600, 40, '', textStyle);
-    betText.setFontSize(24);
-    this.moneyText.setFontSize(24);
-    this.updateBetText(betText);
+    this.moneyText = this.add.text(0, 0, '', textStyle);
+    let betText: Text = this.add.text(0, 0, '', textStyle);
+
     this.updateMoneyText();
+    this.updateBetText(betText);
   }
 
   private updateMoneyText(): void{
     this.moneyText.setText('Money: $' + this.betScene.money);
+    Phaser.Display.Align.In.TopRight(this.moneyText, this.gameZone, -20, -20);
   }
 
   private updateBetText(text: Text){
-      text.setText('Your bet: $' + this.betScene.bet);
+      text.setText('Bet: $' + this.betScene.bet);
+      Phaser.Display.Align.To.BottomLeft(text, this.moneyText);
   }
 
   private setUpDealerScoreText(): void {
@@ -109,9 +111,13 @@ export class MainScene extends Phaser.Scene {
     this.deck = new Deck();
     this.dealerHand =  new Hand();
     this.playerHand= new Hand();
+    this.playerHand.receiveCard(this.deck.drawCard());
     this.dealerHand.receiveCard(this.deck.drawCard());
     this.playerHand.receiveCard(this.deck.drawCard());
-    this.playerHand.receiveCard(this.deck.drawCard());
+    this.dealerHand.receiveCardFaceDown(this.deck.drawCard());
+    if(this.playerHand.getBlackjackScore() === 21){
+      this.endHand(GameResult.BLACKJACK);
+    }
     this.setUpHitButton();
     this.setUpStayButton();
     this.setUpDealerScoreText();
@@ -141,11 +147,14 @@ export class MainScene extends Phaser.Scene {
   private handleStay(mainScene: MainScene): void {
     mainScene.textStay.destroy();
     mainScene.textHit.destroy();
+    mainScene.dealerHand.getCards().forEach(card=>{card.setFaceDown(false)});
+    mainScene.refreshDrawHands();
+    mainScene.setDealerScoreText();
     let dealerScore: number = mainScene.dealerHand.getBlackjackScore();
     let playerScore: number = mainScene.playerHand.getBlackjackScore();
     while( dealerScore < 17){
       mainScene.dealerHand.receiveCard(mainScene.deck.drawCard());
-      mainScene.refreshDrawHands()
+      mainScene.refreshDrawHands();
       mainScene.setDealerScoreText();
       dealerScore = mainScene.dealerHand.getBlackjackScore();
     }
@@ -156,7 +165,7 @@ export class MainScene extends Phaser.Scene {
       mainScene.endHand(GameResult.PUSH);
     }
     else {
-      mainScene.endHand(GameResult.PUSH);
+      mainScene.endHand(GameResult.LOSS);
     }
 
   }
@@ -178,22 +187,29 @@ export class MainScene extends Phaser.Scene {
     let cards: Card[] = hand.getCards();
     let scene: MainScene = this;
     let cardMargin: number = this.CARD_MARGIN;
+    let cardImage: Image;
     cards.forEach(function(card: Card) {
-      let cardImage = scene.add.image(x, y, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(0.5);
+      if(!card.getFaceDown()){
+       cardImage = scene.add.image(x, y, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(1);
+      }
+      else{
+        cardImage = scene.add.image(x,y,'cardBack');
+      }
       x += cardImage.displayWidth + cardMargin;
       scene.cardImages.push(cardImage);
     });
   }
 
   private setDealerScoreText() {
-    this.dealerScoreText.setText("Dealer: " + this.dealerHand.getBlackjackScore());
+    this.dealerScoreText.setText("Dealer Score: " + this.dealerHand.getBlackjackScore());
   }
 
   private setPlayerScoreText() {
-    this.playerScoreText.setText("Player: " + this.playerHand.getBlackjackScore());
+    this.playerScoreText.setText("Your Score: " + this.playerHand.getBlackjackScore());
   }
 
   private endHand(result: GameResult) {
+    this.payout(result);
     let graphics = this.add.graphics({fillStyle: {color: 0x000000, alpha: 0.75}});
     let square = new Phaser.Geom.Rectangle(0, 0, new Number(this.scene.manager.game.config.width).valueOf(),
       new Number(this.scene.manager.game.config.height).valueOf());
@@ -208,12 +224,20 @@ export class MainScene extends Phaser.Scene {
         this.scene.start('BetScene');
       },this);
     },this);
+
+  }
+
+  private payout(result: GameResult){
     if(result === GameResult.WIN){
       this.betScene.money += this.betScene.bet * 2;
     }
     else if(result === GameResult.PUSH){
       this.betScene.money += this.betScene.bet;
     }
+    else if(result === GameResult.BLACKJACK){
+      this.betScene.money += this.betScene.bet * 3;
+    }
     this.updateMoneyText();
   }
+
 }
