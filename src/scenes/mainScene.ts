@@ -70,13 +70,13 @@ export class MainScene extends Phaser.Scene {
   private setUpDealerScoreText(): void {
     this.dealerScoreText = this.add.text(0, 200, '', textStyle);
     this.setDealerScoreText();
-    this.dealerScoreText.setX(400 - (this.dealerScoreText.displayWidth * 0.5));
+    Phaser.Display.Align.In.TopCenter(this.dealerScoreText, this.gameZone,0 ,-20);
   }
 
   private setUpPlayerScoreText(): void {
     this.playerScoreText = this.add.text(0, 300, '', textStyle);
     this.setPlayerScoreText();
-    this.playerScoreText.setX(400 - (this.playerScoreText.displayWidth * 0.5));
+    Phaser.Display.Align.In.BottomCenter(this.playerScoreText, this.gameZone, 0, -20);
   }
 
   private setUpHitButton(): void{
@@ -178,24 +178,31 @@ export class MainScene extends Phaser.Scene {
     }
     this.cardImages = [];
 
-    this.drawHand(this.dealerHand, 400, 100);
-    this.drawHand(this.playerHand, 400, 400);
+    this.drawHand(this.dealerHand, false);
+    this.drawHand(this.playerHand, true);
   }
 
-  private drawHand(hand: Hand, x: number, y: number, ) {
+  private drawHand(hand: Hand, isPlayerHand: boolean) {
 
     let cards: Card[] = hand.getCards();
     let scene: MainScene = this;
     let cardMargin: number = this.CARD_MARGIN;
     let cardImage: Image;
-    cards.forEach(function(card: Card) {
+    cards.forEach(function(card: Card, index: number, cards: Card[]) {
       if(!card.getFaceDown()){
-       cardImage = scene.add.image(x, y, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(1);
+       cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(1);
       }
       else{
-        cardImage = scene.add.image(x,y,'cardBack');
+        cardImage = scene.add.image(0,0,'cardBack');
       }
-      x += cardImage.displayWidth + cardMargin;
+      if(isPlayerHand){
+        Phaser.Display.Align.To.TopLeft(cardImage,scene.playerScoreText,
+          -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
+      }
+      else {
+        Phaser.Display.Align.To.BottomLeft(cardImage,scene.dealerScoreText,
+          -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
+      }
       scene.cardImages.push(cardImage);
     });
   }
