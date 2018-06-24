@@ -4,3 +4,5 @@ export const textStyle = {
     stroke: '#000000',
     strokeThickness: 5
 };
+
+export const HIGH_SCORE_STORAGE = "highscore";

@@ -5,7 +5,7 @@ import {Card} from "../models/card";
 import Text = Phaser.GameObjects.Text;
 import Texture = Phaser.Textures.Texture;
 import Image = Phaser.GameObjects.Image;
-import {textStyle} from "../constants/constants";
+import {HIGH_SCORE_STORAGE, textStyle} from "../constants/constants";
 import {BetScene} from "./BetScene";
 import Zone = Phaser.GameObjects.Zone;
 import {GameResult} from "../models/gameResult";
@@ -187,7 +187,7 @@ export class MainScene extends Phaser.Scene {
     let cardImage: Image;
     cards.forEach(function(card: Card, index: number, cards: Card[]) {
       if(!card.getFaceDown()){
-       cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame()).setScale(1);
+       cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame());
       }
       else{
         cardImage = scene.add.image(0,0,'cardBack');
@@ -242,6 +242,10 @@ export class MainScene extends Phaser.Scene {
       this.betScene.money += this.betScene.bet * 3;
     }
     this.updateMoneyText();
+    let highScore = localStorage.getItem(HIGH_SCORE_STORAGE);
+    if(!highScore || this.betScene.money > new Number(highScore).valueOf() ){
+      localStorage.setItem(HIGH_SCORE_STORAGE, new String(this.betScene.money).valueOf());
+    }
   }
 
 }
