@@ -13,7 +13,7 @@ const config : GameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   scene: [BetScene, MainScene],
-  backgroundColor:'#4BC54C'
+  backgroundColor:'#26723B'
 };
 
 export class Game extends Phaser.Game {
