@@ -24,7 +24,7 @@ export class BetScene extends Phaser.Scene {
         this.load.image('whiteChip', './assets/chipWhite.png');
         this.load.image('blueChip', './assets/chipBlue.png');
         this.load.image('orangeChip', './assets/chipOrange.png');
-        this.load.image('yellowChip', './assets/chipYellow.png')
+        this.load.image('yellowChip', './assets/chipYellow.png');
     }
 
     create(): void {

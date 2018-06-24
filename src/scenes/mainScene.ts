@@ -39,6 +39,8 @@ export class MainScene extends Phaser.Scene {
     this.load.image('cardBack', './assets/card_back_red.png');
     this.atlasTexture = this.textures.get(CARD_ATLAS_KEY);
     this.betScene = <BetScene>this.scene.get('BetScene');
+    this.load.image('orangeChip', './assets/chipOrange.png');
+    this.load.image('yellowChip', './assets/chipYellow.png');
   }
 
   create(): void {
@@ -80,13 +82,18 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setUpHitButton(): void{
+    let hitButton = this.add.image(this.gameZone.width*0.33,this.gameZone.height * 0.5,
+      'yellowChip').setScale(1.2 * this.betScene.scale);
     this.textHit = this.add.text(this.gameZone.width*0.33, this.gameZone.height * 0.5, 'Hit', textStyle);
+    Phaser.Display.Align.In.Center(this.textHit, hitButton);
     this.textHit.setInteractive();
     this.setUpHoverStyles(this.textHit);
     this.setUpClickHandler(this.textHit, this.handleHit);
   }
 
   private setUpStayButton(): void {
+    // let hitButton = this.add.image(this.gameZone.width*0.33,this.gameZone.height * 0.5,
+    //   'yellowChip').setScale(1.2 * this.betScene.scale);
     this.textStay = this.add.text(this.gameZone.width*0.66, this.gameZone.height * 0.5, 'Stay', textStyle);
     this.textStay.setInteractive();
     this.setUpHoverStyles(this.textStay);
