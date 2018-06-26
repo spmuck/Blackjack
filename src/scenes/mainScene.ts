@@ -27,6 +27,8 @@ export class MainScene extends Phaser.Scene {
   private cardImages: Image[];
   private betScene: BetScene;
   private gameZone: Zone;
+  private stayButton: Image;
+  private hitButton: Image;
 
   constructor() {
     super({
@@ -82,33 +84,32 @@ export class MainScene extends Phaser.Scene {
   }
 
   private setUpHitButton(): void{
-    let hitButton = this.add.image(this.gameZone.width*0.33,this.gameZone.height * 0.5,
+    this.hitButton = this.add.image(this.gameZone.width*0.33,this.gameZone.height * 0.5,
       'yellowChip').setScale(1.2 * this.betScene.scale);
     this.textHit = this.add.text(this.gameZone.width*0.33, this.gameZone.height * 0.5, 'Hit', textStyle);
-    Phaser.Display.Align.In.Center(this.textHit, hitButton);
-    this.textHit.setInteractive();
-    this.setUpHoverStyles(this.textHit);
-    this.setUpClickHandler(this.textHit, this.handleHit);
+    Phaser.Display.Align.In.Center(this.textHit, this.hitButton);
+    this.hitButton.setInteractive();
+    this.setUpHoverStyles(this.hitButton);
+    this.setUpClickHandler(this.hitButton, this.handleHit);
   }
 
   private setUpStayButton(): void {
-    // let hitButton = this.add.image(this.gameZone.width*0.33,this.gameZone.height * 0.5,
-    //   'yellowChip').setScale(1.2 * this.betScene.scale);
+    this.stayButton = this.add.image(this.gameZone.width*0.66,this.gameZone.height * 0.5,
+      'orangeChip').setScale(1.2 * this.betScene.scale);
     this.textStay = this.add.text(this.gameZone.width*0.66, this.gameZone.height * 0.5, 'Stay', textStyle);
-    this.textStay.setInteractive();
-    this.setUpHoverStyles(this.textStay);
-    this.setUpClickHandler(this.textStay, this.handleStay);
+    Phaser.Display.Align.In.Center(this.textStay, this.stayButton);
+    this.stayButton.setInteractive();
+    this.setUpHoverStyles(this.stayButton);
+    this.setUpClickHandler(this.stayButton, this.handleStay);
   }
 
-  private setUpHoverStyles(text: Text){
-    text.on('pointerover', function () {
-
-      text.setColor('red');
-    });
-    text.on('pointerout', function () {
-
-      text.setColor('black');
-    });
+  private setUpHoverStyles(image: Image){
+    image.on('pointerover', function () {
+      image.setScale(1.4 * this.betScene.scale);
+    },this);
+    image.on('pointerout', function () {
+      image.setScale(1 * this.betScene.scale);
+    },this);
   }
 
   private setUpNewGame(){
@@ -130,9 +131,9 @@ export class MainScene extends Phaser.Scene {
     this.refreshDrawHands();
   }
 
-  private setUpClickHandler(text: Text, handlerFunction: Function){
+  private setUpClickHandler(image: Image, handlerFunction: Function){
     let mainScene: MainScene = this;
-    text.on('pointerdown', function () {
+    image.on('pointerdown', function () {
       handlerFunction(mainScene);
     });
   }
@@ -240,17 +241,17 @@ export class MainScene extends Phaser.Scene {
 
   private payout(result: GameResult){
     if(result === GameResult.WIN){
-      this.betScene.money += this.betScene.bet * 2;
+      this.betScene.money += (this.betScene.bet * 2);
     }
     else if(result === GameResult.PUSH){
       this.betScene.money += this.betScene.bet;
     }
     else if(result === GameResult.BLACKJACK){
-      this.betScene.money += this.betScene.bet * 3;
+      this.betScene.money += (this.betScene.bet * 3);
     }
     this.updateMoneyText();
     let highScore = localStorage.getItem(HIGH_SCORE_STORAGE);
-    if(!highScore || this.betScene.money > new Number(highScore).valueOf() ){
+    if(!highScore || (this.betScene.money > new Number(highScore).valueOf()) ){
       localStorage.setItem(HIGH_SCORE_STORAGE, new String(this.betScene.money).valueOf());
     }
   }

@@ -28,15 +28,20 @@ export class BetScene extends Phaser.Scene {
     }
 
     create(): void {
-        if(this.bet > this.money) this.bet = this.money;
-        let width: number = new Number(this.scene.manager.game.config.width).valueOf();
-        let height: number = new Number(this.scene.manager.game.config.height).valueOf();
-        this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
-        this.scale = this.gameZone.height / 1100;
-        this.setUpTitle();
-        this.setUpButtons();
-        this.setUpMoneyText();
-        alert(this.gameZone.height);
+        if(this.money == 0){
+          this.gameOver();
+        }
+        else {
+          if (this.bet > this.money) this.bet = this.money;
+          let width: number = new Number(this.scene.manager.game.config.width).valueOf();
+          let height: number = new Number(this.scene.manager.game.config.height).valueOf();
+          this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
+          this.scale = this.gameZone.height / 1100;
+          if (this.scale < 1) this.scale = 1;
+          this.setUpTitle();
+          this.setUpButtons();
+          this.setUpMoneyText();
+        }
     }
 
     private setUpTitle(): void {
@@ -46,11 +51,11 @@ export class BetScene extends Phaser.Scene {
 
     setUpHoverButtons(image: Image): void {
         image.on('pointerover',function(){
-            image.setScale(1.2);
-        });
+            image.setScale(1.2 * this.scale);
+        },this);
         image.on('pointerout', function(){
-            image.setScale(1);
-        });
+            image.setScale(1 * this.scale);
+        },this);
     }
 
     private setUpMoneyText(): void{
@@ -143,4 +148,21 @@ export class BetScene extends Phaser.Scene {
         if(this.bet > this.money) this.bet = this.money;
         this.updateBetText();
     }
+
+  private gameOver() {
+    let graphics = this.add.graphics({fillStyle: {color: 0x000000, alpha: 0.75}});
+    let square = new Phaser.Geom.Rectangle(0, 0, new Number(this.scene.manager.game.config.width).valueOf(),
+      new Number(this.scene.manager.game.config.height).valueOf());
+    graphics.fillRectShape(square);
+    let resultText: Text = this.add.text(0, 0, 'You\'re Broke! Here\'s another grand on the house.', textStyle);
+    resultText.setColor("#ffde3d");
+    Phaser.Display.Align.In.Center(resultText, this.gameZone);
+    this.input.once('pointerdown', function (event){
+      this.input.once('pointerup', function (event){
+        this.money = 1000;
+        this.bet = 0;
+        this.scene.restart();
+      },this);
+    },this);
+  }
 }
