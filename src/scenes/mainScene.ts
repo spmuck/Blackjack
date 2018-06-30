@@ -145,7 +145,7 @@ export class MainScene extends Phaser.Scene {
     if(mainScene.playerHand.getBlackjackScore() > 21) {
       mainScene.textHit.destroy();
       mainScene.textStay.destroy();
-      mainScene.endHand(GameResult.LOSS);
+      mainScene.endHand(GameResult.BUST);
     }
   }
 
@@ -241,13 +241,13 @@ export class MainScene extends Phaser.Scene {
 
   private payout(result: GameResult){
     if(result === GameResult.WIN){
-      this.betScene.money += (this.betScene.bet * 2);
-    }
-    else if(result === GameResult.PUSH){
-      this.betScene.money += this.betScene.bet;
+      this.betScene.money += (this.betScene.bet);
     }
     else if(result === GameResult.BLACKJACK){
-      this.betScene.money += (this.betScene.bet * 3);
+      this.betScene.money += Math.floor(this.betScene.bet * 1.5);
+    }
+    else{
+      this.betScene.money -= this.betScene.bet;
     }
     this.updateMoneyText();
     let highScore = localStorage.getItem(HIGH_SCORE_STORAGE);

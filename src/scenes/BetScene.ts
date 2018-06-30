@@ -130,7 +130,6 @@ export class BetScene extends Phaser.Scene {
             this.updateBetText();
         },this);
         dealButton.on('pointerdown', function(){
-            this.money -= this.bet;
             this.scene.start('MainScene');
         }, this);
         let buttons: Image[] = new Array<Image>();
