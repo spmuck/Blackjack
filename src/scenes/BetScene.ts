@@ -10,6 +10,8 @@ export class BetScene extends Phaser.Scene {
     public bet: number = 0;
     public moneyText: Text;
     public betText: Text;
+    public highScoreText: Text;
+    public highScore: number;
     private gameZone: Zone;
     public scale: number;
 
@@ -32,6 +34,7 @@ export class BetScene extends Phaser.Scene {
           this.gameOver();
         }
         else {
+          this.highScore = new Number(localStorage.getItem(HIGH_SCORE_STORAGE)).valueOf();
           if (this.bet > this.money) this.bet = this.money;
           let width: number = new Number(this.scene.manager.game.config.width).valueOf();
           let height: number = new Number(this.scene.manager.game.config.height).valueOf();
@@ -40,7 +43,7 @@ export class BetScene extends Phaser.Scene {
           if (this.scale < 1) this.scale = 1;
           this.setUpTitle();
           this.setUpButtons();
-          this.setUpMoneyText();
+          this.setUpText();
         }
     }
 
@@ -58,12 +61,14 @@ export class BetScene extends Phaser.Scene {
         },this);
     }
 
-    private setUpMoneyText(): void{
+    private setUpText(): void{
       this.moneyText = this.add.text(0, 0, '', textStyle);
       this.betText = this.add.text(0, 0, '', textStyle);
+      this.highScoreText = this.add.text(0, 0, '', textStyle);
 
       this.updateMoneyText();
       this.updateBetText();
+      this.updateHighScoreText();
     }
 
     private updateMoneyText(): void{
@@ -76,7 +81,13 @@ export class BetScene extends Phaser.Scene {
       Phaser.Display.Align.To.BottomLeft(this.betText, this.moneyText);
     }
 
-    private setUpButtons(): void{
+  private updateHighScoreText(){
+    this.highScoreText.setText('High score: $' + this.highScore);
+    Phaser.Display.Align.In.TopCenter(this.highScoreText, this.gameZone);
+  }
+
+
+  private setUpButtons(): void{
         let whiteChip = this.add.image(200,300,'whiteChip').setScale(this.scale);
         whiteChip.setInteractive();
         whiteChip.setDataEnabled();
