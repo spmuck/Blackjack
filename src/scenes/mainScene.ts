@@ -1,14 +1,13 @@
-import {CARD_ATLAS_KEY, CardFactory} from "../Factories/cardFactory";
+import {CARD_ATLAS_KEY, CARD_HEIGHT, CARD_WIDTH, CardFactory} from "../Factories/cardFactory";
 import {Deck} from "../models/deck";
 import {Hand} from "../models/hand";
-import {Card} from "../models/card";
+import {GUTTER_SIZE, HIGH_SCORE_STORAGE, textStyle} from "../constants/constants";
+import {BetScene} from "./BetScene";
+import {GameResult} from "../models/gameResult";
 import Text = Phaser.GameObjects.Text;
 import Texture = Phaser.Textures.Texture;
 import Image = Phaser.GameObjects.Image;
-import {HIGH_SCORE_STORAGE, textStyle} from "../constants/constants";
-import {BetScene} from "./BetScene";
 import Zone = Phaser.GameObjects.Zone;
-import {GameResult} from "../models/gameResult";
 
 /**
  * Created by sean on 5/29/2018.
@@ -29,6 +28,8 @@ export class MainScene extends Phaser.Scene {
   private gameZone: Zone;
   private stayButton: Image;
   private hitButton: Image;
+  private playerHandZone: Zone;
+  private dealerHandZone: Zone;
 
   constructor() {
     super({
@@ -51,6 +52,34 @@ export class MainScene extends Phaser.Scene {
     this.gameZone = this.add.zone(width * 0.5, height * 0.5, width, height);
     this.setUpMoneyText();
     this.setUpNewGame();
+
+    this.playerHandZone = this.add.zone(0,0, CARD_WIDTH, CARD_HEIGHT);
+    Phaser.Display.Align.To.TopLeft(this.playerHandZone, this.playerScoreText,0,GUTTER_SIZE);
+    this.dealerHandZone = this.add.zone(0,0, CARD_WIDTH, CARD_HEIGHT);
+    Phaser.Display.Align.To.BottomLeft(this.dealerHandZone,this.dealerScoreText,0,GUTTER_SIZE);
+    this.dealInitialCards();
+  }
+
+  private dealInitialCards(){
+    this.handOutCard(this.playerHand, false);
+    this.handOutCard(this.dealerHand, false);
+    this.handOutCard(this.playerHand, false);
+    this.handOutCard(this.dealerHand, true);
+    if(this.playerHand.getBlackjackScore() === 21){
+      this.endHand(GameResult.BLACKJACK);
+    }
+    this.setPlayerScoreText();
+    this.setDealerScoreText();
+  }
+
+  private createCardTween(image: Image, x: number, y: number) {
+    this.tweens.add({
+      targets: image,
+      x: x,
+      y: y,
+      duration: 500,
+      ease: 'Linear'
+    });
   }
 
   private setUpMoneyText(): void{
@@ -116,19 +145,10 @@ export class MainScene extends Phaser.Scene {
     this.deck = new Deck();
     this.dealerHand =  new Hand();
     this.playerHand= new Hand();
-    this.playerHand.receiveCard(this.deck.drawCard());
-    this.dealerHand.receiveCard(this.deck.drawCard());
-    this.playerHand.receiveCard(this.deck.drawCard());
-    this.dealerHand.receiveCardFaceDown(this.deck.drawCard());
-    if(this.playerHand.getBlackjackScore() === 21){
-      this.endHand(GameResult.BLACKJACK);
-    }
     this.setUpHitButton();
     this.setUpStayButton();
     this.setUpDealerScoreText();
     this.setUpPlayerScoreText();
-
-    this.refreshDrawHands();
   }
 
   private setUpClickHandler(image: Image, handlerFunction: Function){
@@ -139,8 +159,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   private handleHit(mainScene: MainScene): void{
-    mainScene.playerHand.receiveCard(mainScene.deck.drawCard());
-    mainScene.refreshDrawHands();
+    mainScene.handOutCard(mainScene.playerHand, false);
     mainScene.setPlayerScoreText();
     if(mainScene.playerHand.getBlackjackScore() > 21) {
       mainScene.textHit.destroy();
@@ -153,13 +172,11 @@ export class MainScene extends Phaser.Scene {
     mainScene.textStay.destroy();
     mainScene.textHit.destroy();
     mainScene.dealerHand.getCards().forEach(card=>{card.setFaceDown(false)});
-    mainScene.refreshDrawHands();
     mainScene.setDealerScoreText();
     let dealerScore: number = mainScene.dealerHand.getBlackjackScore();
     let playerScore: number = mainScene.playerHand.getBlackjackScore();
     while( dealerScore < 17){
-      mainScene.dealerHand.receiveCard(mainScene.deck.drawCard());
-      mainScene.refreshDrawHands();
+      mainScene.handOutCard(mainScene.dealerHand, false)
       mainScene.setDealerScoreText();
       dealerScore = mainScene.dealerHand.getBlackjackScore();
     }
@@ -175,42 +192,64 @@ export class MainScene extends Phaser.Scene {
 
   }
 
-  private refreshDrawHands() {
-    if(this.cardImages) {
-      this.cardImages.forEach(function(cardImage: Image){
-        cardImage.destroy();
-      });
-    }
-    this.cardImages = [];
-
-    this.drawHand(this.dealerHand, false);
-    this.drawHand(this.playerHand, true);
-  }
-
-  private drawHand(hand: Hand, isPlayerHand: boolean) {
-
-    let cards: Card[] = hand.getCards();
-    let scene: MainScene = this;
-    let cardMargin: number = this.CARD_MARGIN;
+  private handOutCard(hand: Hand, faceDownCard: boolean){
+    let card = this.deck.drawCard();
     let cardImage: Image;
-    cards.forEach(function(card: Card, index: number, cards: Card[]) {
-      if(!card.getFaceDown()){
-       cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame());
-      }
-      else{
-        cardImage = scene.add.image(0,0,'cardBack');
-      }
-      if(isPlayerHand){
-        Phaser.Display.Align.To.TopLeft(cardImage,scene.playerScoreText,
-          -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
-      }
-      else {
-        Phaser.Display.Align.To.BottomLeft(cardImage,scene.dealerScoreText,
-          -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
-      }
-      scene.cardImages.push(cardImage);
-    });
+    if(!faceDownCard){
+      hand.receiveCard(card);
+      cardImage = this.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame());
+    }
+    else {
+      hand.receiveCardFaceDown(card);
+      cardImage = this.add.image(0, 0, 'cardBack');
+    }
+    let xOffset = ((hand.getCards().length-1) * this.CARD_MARGIN) + ((hand.getCards().length-1) * cardImage.width);
+    if(hand === this.playerHand){
+      this.createCardTween(cardImage, this.playerHandZone.x + xOffset, this.playerHandZone.y);
+      this.setPlayerScoreText()
+    }
+    else{
+      this.createCardTween(cardImage, this.dealerHandZone.x + xOffset, this.dealerHandZone.y);
+      this.setDealerScoreText();
+    }
   }
+
+  // private refreshDrawHands() {
+  //   if(this.cardImages) {
+  //     this.cardImages.forEach(function(cardImage: Image){
+  //       cardImage.destroy();
+  //     });
+  //   }
+  //   this.cardImages = [];
+  //
+  //   this.drawHand(this.dealerHand, false);
+  //   this.drawHand(this.playerHand, true);
+  // }
+
+  // private drawHand(hand: Hand, isPlayerHand: boolean) {
+  //
+  //   let cards: Card[] = hand.getCards();
+  //   let scene: MainScene = this;
+  //   let cardMargin: number = this.CARD_MARGIN;
+  //   let cardImage: Image;
+  //   cards.forEach(function(card: Card, index: number, cards: Card[]) {
+  //     if(!card.getFaceDown()){
+  //      cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame());
+  //     }
+  //     else{
+  //       cardImage = scene.add.image(0,0,'cardBack');
+  //     }
+  //     if(isPlayerHand){
+  //       Phaser.Display.Align.To.TopLeft(cardImage,scene.playerScoreText,
+  //         -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
+  //     }
+  //     else {
+  //       Phaser.Display.Align.To.BottomLeft(cardImage,scene.dealerScoreText,
+  //         -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
+  //     }
+  //     scene.cardImages.push(cardImage);
+  //   });
+  // }
 
   private setDealerScoreText() {
     this.dealerScoreText.setText("Dealer Score: " + this.dealerHand.getBlackjackScore());
