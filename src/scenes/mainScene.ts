@@ -61,15 +61,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   private dealInitialCards(){
-    this.handOutCard(this.playerHand, false);
-    this.handOutCard(this.dealerHand, false);
-    this.handOutCard(this.playerHand, false);
-    this.handOutCard(this.dealerHand, true);
+    setTimeout(this.handOutCard.bind(this),1000, this.playerHand, false);
+    setTimeout(this.handOutCard.bind(this),2000, this.dealerHand, false);
+    setTimeout(this.handOutCard.bind(this),3000, this.playerHand, false);
+    setTimeout(this.handOutCard.bind(this),4000, this.dealerHand, true);
     if(this.playerHand.getBlackjackScore() === 21){
       this.endHand(GameResult.BLACKJACK);
     }
-    this.setPlayerScoreText();
-    this.setDealerScoreText();
   }
 
   private createCardTween(image: Image, x: number, y: number) {
