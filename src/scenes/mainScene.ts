@@ -30,6 +30,8 @@ export class MainScene extends Phaser.Scene {
   private hitButton: Image;
   private playerHandZone: Zone;
   private dealerHandZone: Zone;
+  private faceDownImage: Image;
+  private CARD_FLIP_TIME = 600;
 
   constructor() {
     super({
@@ -61,21 +63,37 @@ export class MainScene extends Phaser.Scene {
   }
 
   private dealInitialCards(){
+    setTimeout(this.handOutCard.bind(this),1, this.playerHand, false);
+    setTimeout(this.handOutCard.bind(this),500, this.dealerHand, false);
     setTimeout(this.handOutCard.bind(this),1000, this.playerHand, false);
-    setTimeout(this.handOutCard.bind(this),2000, this.dealerHand, false);
-    setTimeout(this.handOutCard.bind(this),3000, this.playerHand, false);
-    setTimeout(this.handOutCard.bind(this),4000, this.dealerHand, true);
+    setTimeout(this.handOutCard.bind(this),1500, this.dealerHand, true);
     if(this.playerHand.getBlackjackScore() === 21){
       this.endHand(GameResult.BLACKJACK);
     }
   }
 
-  private createCardTween(image: Image, x: number, y: number) {
+  private createCardTween(image: Image, x: number, y: number, duration: number = 500) {
     this.tweens.add({
       targets: image,
       x: x,
       y: y,
-      duration: 500,
+      duration: duration,
+      ease: 'Linear'
+    });
+  }
+
+  private flipOverCard(cardBack: Image, cardFront: Image){
+    this.tweens.add({
+      targets:cardBack,
+      scaleX: 0,
+      duration: this.CARD_FLIP_TIME /2,
+      ease: 'Linear'
+    });
+    this.tweens.add({
+      targets: cardFront,
+      scaleX: 1,
+      duration: this.CARD_FLIP_TIME /2,
+      delay: this.CARD_FLIP_TIME /2,
       ease: 'Linear'
     });
   }
@@ -169,25 +187,47 @@ export class MainScene extends Phaser.Scene {
   private handleStay(mainScene: MainScene): void {
     mainScene.textStay.destroy();
     mainScene.textHit.destroy();
-    mainScene.dealerHand.getCards().forEach(card=>{card.setFaceDown(false)});
-    mainScene.setDealerScoreText();
+    mainScene.handleFlipOver(mainScene);
+    setTimeout(mainScene.drawCardsUntil17,mainScene.CARD_FLIP_TIME,mainScene)
+  }
+
+  private drawCardsUntil17(mainScene: MainScene) {
     let dealerScore: number = mainScene.dealerHand.getBlackjackScore();
     let playerScore: number = mainScene.playerHand.getBlackjackScore();
-    while( dealerScore < 17){
+    let result: GameResult = null;
+    if (dealerScore < 17) {
       mainScene.handOutCard(mainScene.dealerHand, false)
-      mainScene.setDealerScoreText();
-      dealerScore = mainScene.dealerHand.getBlackjackScore();
+      setTimeout(mainScene.drawCardsUntil17,500, mainScene);
+      return;
     }
-    if(dealerScore > 21 || ( playerScore < 22 && playerScore > dealerScore)){
-      mainScene.endHand(GameResult.WIN);
+    result = mainScene.deriveGameResult(dealerScore, playerScore, result);
+    setTimeout(mainScene.endHand.bind(mainScene), 500, result);
+  }
+
+
+  private deriveGameResult(dealerScore: number, playerScore: number, result: GameResult) {
+    if (dealerScore > 21 || (playerScore < 22 && playerScore > dealerScore)) {
+      result = GameResult.WIN;
     }
-    else if(dealerScore === playerScore){
-      mainScene.endHand(GameResult.PUSH);
+    else if (dealerScore === playerScore) {
+      result = GameResult.PUSH;
     }
     else {
-      mainScene.endHand(GameResult.LOSS);
+      result = GameResult.LOSS;
     }
+    return result;
+  }
 
+  private handleFlipOver(mainScene: MainScene) {
+    mainScene.dealerHand.getCards().forEach(card => {
+      if (card.getFaceDown()) {
+        card.setFaceDown(false);
+        let cardFront = mainScene.add.image(mainScene.faceDownImage.x, mainScene.faceDownImage.y, CARD_ATLAS_KEY, card.getAtlasFrame());
+        cardFront.setScale(0, 1);
+        mainScene.flipOverCard(mainScene.faceDownImage, cardFront);
+      }
+    });
+    mainScene.setDealerScoreText();
   }
 
   private handOutCard(hand: Hand, faceDownCard: boolean){
@@ -200,6 +240,7 @@ export class MainScene extends Phaser.Scene {
     else {
       hand.receiveCardFaceDown(card);
       cardImage = this.add.image(0, 0, 'cardBack');
+      this.faceDownImage = cardImage;
     }
     let xOffset = ((hand.getCards().length-1) * this.CARD_MARGIN) + ((hand.getCards().length-1) * cardImage.width);
     if(hand === this.playerHand){
@@ -207,47 +248,10 @@ export class MainScene extends Phaser.Scene {
       this.setPlayerScoreText()
     }
     else{
-      this.createCardTween(cardImage, this.dealerHandZone.x + xOffset, this.dealerHandZone.y);
+      this.createCardTween(cardImage, this.dealerHandZone.x + xOffset, this.dealerHandZone.y,350);
       this.setDealerScoreText();
     }
   }
-
-  // private refreshDrawHands() {
-  //   if(this.cardImages) {
-  //     this.cardImages.forEach(function(cardImage: Image){
-  //       cardImage.destroy();
-  //     });
-  //   }
-  //   this.cardImages = [];
-  //
-  //   this.drawHand(this.dealerHand, false);
-  //   this.drawHand(this.playerHand, true);
-  // }
-
-  // private drawHand(hand: Hand, isPlayerHand: boolean) {
-  //
-  //   let cards: Card[] = hand.getCards();
-  //   let scene: MainScene = this;
-  //   let cardMargin: number = this.CARD_MARGIN;
-  //   let cardImage: Image;
-  //   cards.forEach(function(card: Card, index: number, cards: Card[]) {
-  //     if(!card.getFaceDown()){
-  //      cardImage = scene.add.image(0, 0, CARD_ATLAS_KEY, card.getAtlasFrame());
-  //     }
-  //     else{
-  //       cardImage = scene.add.image(0,0,'cardBack');
-  //     }
-  //     if(isPlayerHand){
-  //       Phaser.Display.Align.To.TopLeft(cardImage,scene.playerScoreText,
-  //         -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
-  //     }
-  //     else {
-  //       Phaser.Display.Align.To.BottomLeft(cardImage,scene.dealerScoreText,
-  //         -((index * cardImage.displayWidth) + (index * scene.CARD_MARGIN)),20);
-  //     }
-  //     scene.cardImages.push(cardImage);
-  //   });
-  // }
 
   private setDealerScoreText() {
     this.dealerScoreText.setText("Dealer Score: " + this.dealerHand.getBlackjackScore());
